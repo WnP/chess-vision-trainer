@@ -1,13 +1,11 @@
 module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
-import Arithmetic exposing (isEven, isOdd)
 import Browser
 import Char
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Random
-import Task
 import Time
 
 
@@ -56,7 +54,7 @@ initModel =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( initModel
-    , Task.succeed Roll |> Task.perform identity
+    , Cmd.none
     )
 
 
@@ -67,6 +65,16 @@ toString ( x, y ) =
 
     else
         String.fromChar (Char.fromCode <| x + 96) ++ String.fromInt y
+
+
+isEven : Int -> Bool
+isEven x =
+    modBy 2 x == 0
+
+
+isOdd : Int -> Bool
+isOdd =
+    not << isEven
 
 
 isDark : ( Int, Int ) -> Bool

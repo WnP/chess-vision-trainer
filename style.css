@@ -59,3 +59,19 @@ button {
 .padded {
     padding-bottom: 4em;
 }
+
+#footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+}
+
+#footer a {
+    color: gray;
+    text-decoration: none;
+}
+
+#copyleft {
+  display:inline-block;
+  transform: rotate(180deg);
+}

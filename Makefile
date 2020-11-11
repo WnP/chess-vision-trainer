@@ -4,6 +4,7 @@ build:
 	cp app.js build
 	cp index.html build
 	cp style.css build
+	cp favicon.ico build
 
 clean:
 	rm -rf build
