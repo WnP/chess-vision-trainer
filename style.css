@@ -1,0 +1,48 @@
+body {
+    background: #181a1b;
+    color: white;
+    font-family: sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+}
+
+div {
+    max-width: 42rem;
+    padding: 1rem;
+    margin: auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 4rem;
+}
+
+button {
+    font-size: 2rem;
+    padding: 1rem 2rem;
+    margin: 1rem;
+    background: teal;
+    border: none;
+    border-radius: 5px 5px;
+}
+
+#progress-bar {
+    height: 1rem;
+    width: 100%;
+    padding: 0;
+    background: teal;
+}
+
+.red {
+    color: red;
+}
+
+.green {
+    color: green;
+}
+
+.padded {
+    padding-bottom: 4rem;
+}
