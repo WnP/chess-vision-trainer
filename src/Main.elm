@@ -233,7 +233,7 @@ viewGame model =
             [ id "progress-bar"
             , style "width" <|
                 (String.fromFloat <|
-                    (toFloat <| (model.time - 10) * 100)
+                    (toFloat <| (model.time - 100) * 100)
                         / 3000
                 )
                     ++ "%"
