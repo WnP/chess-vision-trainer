@@ -56,7 +56,7 @@ initModel =
 
 init : String -> ( Model, Cmd Msg )
 init language =
-    ( { initModel | language = Debug.log "Langage" <| I18n.parseLang language }
+    ( { initModel | language = I18n.parseLang language }
     , Cmd.none
     )
 
