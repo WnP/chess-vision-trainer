@@ -92,7 +92,7 @@ getResponse model =
                 I18n.isaDarkSquare model.language
 
             else
-                I18n.isaDarkSquare model.language
+                I18n.isaLightSquare model.language
            )
 
 
