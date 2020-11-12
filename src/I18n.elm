@@ -59,7 +59,7 @@ description lang =
         Fr ->
             "Une fois commencé vous devez deviner si la case proposée est "
                 ++ "foncée ou claire. Cette excercice devrait améliorer votre "
-                ++ "vision au échecs."
+                ++ "vision aux échecs."
 
 
 start : Language -> String
