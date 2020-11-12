@@ -36,9 +36,17 @@ button {
     font-size: 2em;
     padding: 0.5em 1em;
     margin: 1em;
-    background: teal;
+    background-color: teal;
     border: none;
     border-radius: 5px 5px;
+    box-shadow: 3px 3px 12px black;
+    color: white;
+    transition: all 0.2s;
+}
+button:active {
+    background-color: #006060;
+    box-shadow: 1px 1px 1px black;
+    transition: all 0.2s;
 }
 
 #progress-bar {
