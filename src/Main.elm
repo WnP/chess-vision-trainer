@@ -119,9 +119,13 @@ update msg model =
             )
 
         NewSquare square ->
-            ( { model | square = square }
-            , Cmd.none
-            )
+            if square == model.square then
+                update Roll model
+
+            else
+                ( { model | square = square }
+                , Cmd.none
+                )
 
         Dark ->
             let
