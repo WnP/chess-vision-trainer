@@ -5,6 +5,7 @@ import Char
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import I18n
 import Random
 import Time
 
@@ -28,32 +29,34 @@ main =
 
 type alias Model =
     { square : ( Int, Int )
-    , result : String
+    , result : I18n.Result
     , response : String
     , time : Int
     , started : Bool
     , score : Int
     , attempt : Int
     , hasPlayed : Bool
+    , language : I18n.Language
     }
 
 
 initModel : Model
 initModel =
     { square = ( 0, 0 )
-    , result = "\u{00A0}"
+    , result = I18n.NoResult
     , response = "\u{00A0}"
     , time = 0
     , started = False
     , score = 0
     , attempt = 0
     , hasPlayed = False
+    , language = I18n.En
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( initModel
+init : String -> ( Model, Cmd Msg )
+init language =
+    ( { initModel | language = Debug.log "Langage" <| I18n.parseLang language }
     , Cmd.none
     )
 
@@ -82,17 +85,15 @@ isDark ( x, y ) =
     (isOdd x && isOdd y) || (isEven x && isEven y)
 
 
-getResponse : ( Int, Int ) -> String
-getResponse square =
-    toString square
-        ++ " is a "
-        ++ (if isDark square then
-                "Dark"
+getResponse : Model -> String
+getResponse model =
+    toString model.square
+        ++ (if isDark model.square then
+                I18n.isaDarkSquare model.language
 
             else
-                "Light"
+                I18n.isaDarkSquare model.language
            )
-        ++ " square."
 
 
 
@@ -142,6 +143,7 @@ update msg model =
                     | time = 3100
                     , started = True
                     , hasPlayed = True
+                    , language = model.language
                 }
 
         Tick _ ->
@@ -168,11 +170,11 @@ updateModel model success =
     { model
         | result =
             if success then
-                "Success"
+                I18n.Success
 
             else
-                "Fail"
-        , response = getResponse model.square
+                I18n.Fail
+        , response = getResponse model
         , score =
             model.score
                 + (if success then
@@ -214,13 +216,8 @@ viewInit : Model -> Html Msg
 viewInit model =
     div []
         [ h1 [] [ text "Chess Vision Trainer" ]
-        , p [ class "padded" ]
-            [ text <|
-                "Once started you should guess if the displayed square "
-                    ++ "is a Light or a Dark one. This excercice may improve "
-                    ++ "your chess vision."
-            ]
-        , button [ onClick Start ] [ text "Start" ]
+        , p [ class "padded" ] [ text <| I18n.description model.language ]
+        , button [ onClick Start ] [ text <| I18n.start model.language ]
         ]
 
 
@@ -239,18 +236,18 @@ viewGame model =
             ]
             []
         , h1 [] [ text <| toString model.square ]
-        , button [ onClick Dark ] [ text "Dark" ]
-        , button [ onClick Light ] [ text "Light" ]
+        , button [ onClick Dark ] [ text <| I18n.dark model.language ]
+        , button [ onClick Light ] [ text <| I18n.light model.language ]
         , h3
             [ class
-                (if model.result == "Fail" then
+                (if model.result == I18n.Fail then
                     "red"
 
                  else
                     "green"
                 )
             ]
-            [ text model.result ]
+            [ text <| I18n.resultToString model.result model.language ]
         , p [] [ text model.response ]
         ]
 
@@ -258,7 +255,7 @@ viewGame model =
 viewScore : Model -> Html Msg
 viewScore model =
     div []
-        [ h2 [] [ text "Your score is: " ]
+        [ h2 [] [ text <| I18n.score model.language ]
         , h1 []
             [ text <|
                 String.fromInt model.score
@@ -268,5 +265,5 @@ viewScore model =
                     ++ String.fromInt (model.score * 100 // model.attempt)
                     ++ "%"
             ]
-        , button [ onClick Start ] [ text "Restart" ]
+        , button [ onClick Start ] [ text <| I18n.restart model.language ]
         ]
