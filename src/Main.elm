@@ -240,8 +240,12 @@ viewGame model =
             ]
             []
         , h1 [] [ text <| toString model.square ]
-        , button [ onClick Dark ] [ text <| I18n.dark model.language ]
-        , button [ onClick Light ] [ text <| I18n.light model.language ]
+        , button
+            [ id "left", onClick Dark ]
+            [ text <| I18n.dark model.language ]
+        , button
+            [ id "right", onClick Light ]
+            [ text <| I18n.light model.language ]
         , h3
             [ class
                 (if model.result == I18n.Fail then

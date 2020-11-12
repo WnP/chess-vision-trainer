@@ -43,10 +43,19 @@ button {
     color: white;
     transition: all 0.2s;
 }
+
 button:active {
     background-color: #006060;
     box-shadow: 1px 1px 1px black;
     transition: all 0.2s;
+}
+
+#left {
+    margin-left: 0;
+}
+
+#right {
+    margin-right: 0;
 }
 
 #progress-bar {
@@ -85,6 +94,6 @@ button:active {
 }
 
 #copyleft {
-  display:inline-block;
-  transform: rotate(180deg);
+    display: inline-block;
+    transform: rotate(180deg);
 }
