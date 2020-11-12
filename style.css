@@ -68,6 +68,11 @@ button:active {
     padding-bottom: 4em;
 }
 
+#score {
+    margin-top: 1.2em;
+    margin-bottom: 1.2em;
+}
+
 #footer {
     position: fixed;
     bottom: 0;

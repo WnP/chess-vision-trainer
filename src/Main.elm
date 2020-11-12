@@ -260,7 +260,7 @@ viewScore : Model -> Html Msg
 viewScore model =
     div []
         [ h2 [] [ text <| I18n.score model.language ]
-        , h1 []
+        , h1 [ id "score" ]
             [ text <|
                 String.fromInt model.score
                     ++ "/"
