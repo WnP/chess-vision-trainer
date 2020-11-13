@@ -1,10 +1,18 @@
 build:
-	elm make src/Main.elm --output=app.js --optimize
-	mkdir build
-	cp app.js build
+	mkdir -p build
+	yarn install
+	./node_modules/elm/bin/elm make src/Main.elm --output=app.js --optimize
+	./node_modules/uglify-js/bin/uglifyjs app.js --compress \
+		"pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe" \
+		| ./node_modules/uglify-js/bin/uglifyjs --mangle --output ./build/app.js
 	cp index.html build
 	cp style.css build
 	cp favicon.ico build
 
 clean:
-	rm -rf build
+	rm -rf build node_modules
+
+watch:
+	yarn install
+	find . -name "*.elm" | entr ./node_modules/elm/bin/elm \
+		make src/Main.elm --output=app.js --debug
