@@ -1,11 +1,14 @@
 module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
+import Array
 import Browser
 import Char
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import I18n
+import List
+import Maybe
 import Random
 import Time
 
@@ -27,30 +30,47 @@ main =
 -- MODEL
 
 
+type alias Square =
+    ( Int, Int )
+
+
+emptySquare : Square
+emptySquare =
+    ( 0, 0 )
+
+
 type alias Model =
-    { square : ( Int, Int )
-    , result : I18n.Result
-    , response : String
+    { result : I18n.Result
     , time : Int
     , started : Bool
     , score : Int
     , attempt : Int
     , hasPlayed : Bool
     , language : I18n.Language
+    , possbilities : List Square
+    , previous : Square
+    , current : Square
     }
+
+
+initPossibilities : List Square
+initPossibilities =
+    List.range 1 8
+        |> List.concatMap (\n -> List.map (\x -> ( x, n )) (List.range 1 8))
 
 
 initModel : Model
 initModel =
-    { square = ( 0, 0 )
-    , result = I18n.NoResult
-    , response = "\u{00A0}"
+    { result = I18n.NoResult
     , time = 0
     , started = False
     , score = 0
     , attempt = 0
     , hasPlayed = False
     , language = I18n.En
+    , possbilities = initPossibilities
+    , previous = emptySquare
+    , current = emptySquare
     }
 
 
@@ -61,8 +81,8 @@ init language =
     )
 
 
-toString : ( Int, Int ) -> String
-toString ( x, y ) =
+squareToString : Square -> String
+squareToString ( x, y ) =
     if x == 0 then
         ""
 
@@ -80,20 +100,14 @@ isOdd =
     not << isEven
 
 
-isDark : ( Int, Int ) -> Bool
+isDark : Square -> Bool
 isDark ( x, y ) =
     (isOdd x && isOdd y) || (isEven x && isEven y)
 
 
-getResponse : Model -> String
-getResponse model =
-    toString model.square
-        ++ (if isDark model.square then
-                I18n.isaDarkSquare model.language
-
-            else
-                I18n.isaLightSquare model.language
-           )
+isLight : Square -> Bool
+isLight =
+    not << isDark
 
 
 
@@ -102,9 +116,9 @@ getResponse model =
 
 type Msg
     = Roll
-    | NewSquare ( Int, Int )
-    | Dark
-    | Light
+    | NewSquareIndex Int
+    | Dark Square
+    | Light Square
     | Start
     | Tick Time.Posix
 
@@ -114,30 +128,47 @@ update msg model =
     case msg of
         Roll ->
             ( model
-            , Random.generate NewSquare <|
-                Random.pair (Random.int 1 8) (Random.int 1 8)
+            , Random.generate NewSquareIndex <|
+                Random.int 0 (List.length model.possbilities - 1)
             )
 
-        NewSquare square ->
-            if square == model.square then
-                update Roll model
+        NewSquareIndex i ->
+            let
+                current =
+                    Array.fromList model.possbilities
+                        |> Array.get i
+                        |> Maybe.withDefault emptySquare
 
-            else
-                ( { model | square = square }
-                , Cmd.none
-                )
+                p =
+                    List.drop (i + 1) model.possbilities
+                        |> List.append (List.take i model.possbilities)
 
-        Dark ->
+                possbilities =
+                    if List.isEmpty p then
+                        initPossibilities
+
+                    else
+                        p
+            in
+            ( { model
+                | previous = model.current
+                , possbilities = possbilities
+                , current = current
+              }
+            , Cmd.none
+            )
+
+        Dark square ->
             let
                 success =
-                    isDark model.square
+                    isDark square
             in
             update Roll <| updateModel model success
 
-        Light ->
+        Light square ->
             let
                 success =
-                    not <| isDark model.square
+                    isLight square
             in
             update Roll <| updateModel model success
 
@@ -178,7 +209,6 @@ updateModel model success =
 
             else
                 I18n.Fail
-        , response = getResponse model
         , score =
             model.score
                 + (if success then
@@ -225,6 +255,21 @@ viewInit model =
         ]
 
 
+responseMessage : Model -> String
+responseMessage model =
+    if model.previous == emptySquare then
+        "\u{00A0}"
+
+    else
+        squareToString model.previous
+            ++ (if isDark model.previous then
+                    I18n.isaDarkSquare model.language
+
+                else
+                    I18n.isaLightSquare model.language
+               )
+
+
 viewGame : Model -> Html Msg
 viewGame model =
     div []
@@ -239,12 +284,12 @@ viewGame model =
                     ++ "%"
             ]
             []
-        , h1 [] [ text <| toString model.square ]
+        , h1 [] [ text <| squareToString model.current ]
         , button
-            [ id "left", onClick Dark ]
+            [ id "left", onClick <| Dark model.current ]
             [ text <| I18n.dark model.language ]
         , button
-            [ id "right", onClick Light ]
+            [ id "right", onClick <| Light model.current ]
             [ text <| I18n.light model.language ]
         , h3
             [ class
@@ -256,7 +301,7 @@ viewGame model =
                 )
             ]
             [ text <| I18n.resultToString model.result model.language ]
-        , p [] [ text model.response ]
+        , p [] [ text <| responseMessage model ]
         ]
 
 
