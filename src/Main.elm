@@ -11,6 +11,7 @@ import List
 import Maybe
 import Random
 import Time
+import Tuple
 
 
 
@@ -56,7 +57,7 @@ type alias Model =
 initPossibilities : List Square
 initPossibilities =
     List.range 1 8
-        |> List.concatMap (\n -> List.map (\x -> ( x, n )) (List.range 1 8))
+        |> List.concatMap (Tuple.pair >> flip List.map (List.range 1 8))
 
 
 initModel : Model
@@ -100,6 +101,11 @@ isOdd =
     not << isEven
 
 
+flip : (a -> b -> c) -> b -> a -> c
+flip func b a =
+    func a b
+
+
 isDark : Square -> Bool
 isDark ( x, y ) =
     (isOdd x && isOdd y) || (isEven x && isEven y)
@@ -128,8 +134,8 @@ update msg model =
     case msg of
         Roll ->
             ( model
-            , Random.generate NewSquareIndex <|
-                Random.int 0 (List.length model.possbilities - 1)
+            , Random.int 0 (List.length model.possbilities - 1)
+                |> Random.generate NewSquareIndex
             )
 
         NewSquareIndex i ->
@@ -159,18 +165,14 @@ update msg model =
             )
 
         Dark square ->
-            let
-                success =
-                    isDark square
-            in
-            update Roll <| updateModel model success
+            isDark square
+                |> updateModel model
+                |> update Roll
 
         Light square ->
-            let
-                success =
-                    isLight square
-            in
-            update Roll <| updateModel model success
+            isLight square
+                |> updateModel model
+                |> update Roll
 
         Start ->
             update Roll
@@ -277,9 +279,10 @@ viewGame model =
         , div
             [ id "progress-bar"
             , style "width" <|
-                (String.fromFloat <|
-                    (toFloat <| (model.time - 100) * 100)
-                        / 3000
+                ((model.time - 100)
+                    |> toFloat
+                    |> flip (/) 30
+                    |> String.fromFloat
                 )
                     ++ "%"
             ]
