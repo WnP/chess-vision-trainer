@@ -266,9 +266,9 @@ responseMessage lang square =
                )
 
 
-getAnimation : Model -> List (Html Msg)
-getAnimation model =
-    model.results
+getAnimation : Results -> List (Html Msg)
+getAnimation results =
+    results
         |> List.map
             (\( square, result ) ->
                 div [ class "result-wrapper" ]
@@ -311,7 +311,7 @@ viewGame model =
             []
         , div [ class "square" ]
             [ h1 [] [ text <| squareToString model.current ]
-            , div [] (getAnimation model)
+            , div [] (getAnimation model.results)
             ]
         , button
             [ id "left", onClick <| Answering Dark model.current ]
