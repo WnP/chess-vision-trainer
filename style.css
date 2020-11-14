@@ -9,7 +9,7 @@ body {
     height: 90vh;
 }
 
-div {
+.wrapper {
     max-width: 42em;
     padding: 1em;
     margin: auto;
@@ -96,4 +96,90 @@ button:active {
 #copyleft {
     display: inline-block;
     transform: rotate(180deg);
+}
+
+.square {
+    position: relative;
+}
+.result-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    animation-name: success-wrapper;
+    animation-duration: 1s;
+    animation-timing-function: ease;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    z-index: -1;
+}
+
+.success {
+    font-size: 4em;
+    color: white;
+    margin: 0;
+    animation-name: success-color, success-size;
+    animation-duration: 0.4s, 1s;
+    animation-timing-function: ease, ease;
+    animation-iteration-count: 1, 1;
+    animation-fill-mode: forwards, forwards;
+}
+
+@keyframes success-color {
+    from {
+        color: white;
+    }
+    to {
+        color: green;
+    }
+}
+@keyframes success-size {
+    from {
+        font-size: 4em;
+        opacity: 1;
+    }
+    to {
+        font-size: 8em;
+        opacity: 0;
+    }
+}
+@keyframes success-wrapper {
+    from {
+        top: 0;
+    }
+    to {
+        top: -2.5em;
+    }
+}
+
+.fail {
+    font-size: 4em;
+    color: white;
+    margin: 0;
+    animation-name: fail-color, fail-size;
+    animation-duration: 0.4s, 1s;
+    animation-timing-function: ease, ease;
+    animation-iteration-count: 1, 1;
+    animation-fill-mode: forwards, forwards;
+}
+
+@keyframes fail-color {
+    from {
+        color: white;
+    }
+    to {
+        color: red;
+    }
+}
+@keyframes fail-size {
+    from {
+        font-size: 4em;
+        opacity: 1;
+        transform: rotateX(0deg) translatez(0em);
+    }
+    to {
+        font-size: 8em;
+        opacity: 0;
+        transform: rotateX(90deg) translatez(-0.32em);
+    }
 }

@@ -40,17 +40,23 @@ emptySquare =
     ( 0, 0 )
 
 
+type Answer
+    = Dark
+    | Light
+
+
+type alias Results =
+    List ( Square, I18n.Result )
+
+
 type alias Model =
-    { result : I18n.Result
-    , time : Int
+    { time : Int
     , started : Bool
-    , score : Int
-    , attempt : Int
     , hasPlayed : Bool
     , language : I18n.Language
     , possbilities : List Square
-    , previous : Square
     , current : Square
+    , results : Results
     }
 
 
@@ -62,16 +68,13 @@ initPossibilities =
 
 initModel : Model
 initModel =
-    { result = I18n.NoResult
-    , time = 0
+    { time = 0
     , started = False
-    , score = 0
-    , attempt = 0
     , hasPlayed = False
     , language = I18n.En
     , possbilities = initPossibilities
-    , previous = emptySquare
     , current = emptySquare
+    , results = []
     }
 
 
@@ -123,8 +126,7 @@ isLight =
 type Msg
     = Roll
     | NewSquareIndex Int
-    | Dark Square
-    | Light Square
+    | Answering Answer Square
     | Start
     | Tick Time.Posix
 
@@ -157,22 +159,35 @@ update msg model =
                         p
             in
             ( { model
-                | previous = model.current
-                , possbilities = possbilities
+                | possbilities = possbilities
                 , current = current
               }
             , Cmd.none
             )
 
-        Dark square ->
-            isDark square
-                |> updateModel model
-                |> update Roll
+        Answering answer square ->
+            let
+                success =
+                    case answer of
+                        Dark ->
+                            isDark square
 
-        Light square ->
-            isLight square
-                |> updateModel model
-                |> update Roll
+                        Light ->
+                            isLight square
+            in
+            update Roll
+                { model
+                    | results =
+                        List.append model.results
+                            [ ( model.current
+                              , if success then
+                                    I18n.Success
+
+                                else
+                                    I18n.Fail
+                              )
+                            ]
+                }
 
         Start ->
             update Roll
@@ -189,7 +204,7 @@ update msg model =
                     model.time - 1
             in
             if model.started && newTime == 100 then
-                ( { model | time = newTime, started = False }
+                ( { model | started = False }
                 , Cmd.none
                 )
 
@@ -205,21 +220,7 @@ update msg model =
 updateModel : Model -> Bool -> Model
 updateModel model success =
     { model
-        | result =
-            if success then
-                I18n.Success
-
-            else
-                I18n.Fail
-        , score =
-            model.score
-                + (if success then
-                    1
-
-                   else
-                    0
-                  )
-        , attempt = model.attempt + 1
+        | results = List.append model.results [ ( model.current, I18n.Success ) ]
     }
 
 
@@ -250,34 +251,62 @@ view model =
 
 viewInit : Model -> Html Msg
 viewInit model =
-    div []
+    div [ class "wrapper" ]
         [ h1 [] [ text "Chess Vision Trainer" ]
         , p [ class "padded" ] [ text <| I18n.description model.language ]
         , button [ onClick Start ] [ text <| I18n.start model.language ]
         ]
 
 
-responseMessage : Model -> String
-responseMessage model =
-    if model.previous == emptySquare then
+responseMessage : I18n.Language -> Square -> String
+responseMessage lang square =
+    if square == emptySquare then
         "\u{00A0}"
 
     else
-        squareToString model.previous
-            ++ (if isDark model.previous then
-                    I18n.isaDarkSquare model.language
+        squareToString square
+            ++ (if isDark square then
+                    I18n.isaDarkSquare lang
 
                 else
-                    I18n.isaLightSquare model.language
+                    I18n.isaLightSquare lang
                )
+
+
+getAnimation : Model -> List (Html Msg)
+getAnimation model =
+    model.results
+        |> List.map
+            (\( square, result ) ->
+                div [ class "result-wrapper" ]
+                    [ h1
+                        [ class <|
+                            case result of
+                                I18n.Success ->
+                                    "success"
+
+                                _ ->
+                                    "fail"
+                        ]
+                        [ text <| squareToString square ]
+                    ]
+            )
 
 
 viewGame : Model -> Html Msg
 viewGame model =
-    div []
+    let
+        ( previous, result ) =
+            model.results
+                |> List.reverse
+                |> List.head
+                |> Maybe.withDefault ( emptySquare, I18n.NoResult )
+    in
+    div [ class "wrapper" ]
         [ h2 [] [ text <| String.fromInt <| model.time // 100 ]
         , div
             [ id "progress-bar"
+            , class "wrapper"
             , style "width" <|
                 ((model.time - 100)
                     |> toFloat
@@ -287,38 +316,48 @@ viewGame model =
                     ++ "%"
             ]
             []
-        , h1 [] [ text <| squareToString model.current ]
+        , div [ class "square" ]
+            [ h1 [] [ text <| squareToString model.current ]
+            , div [] (getAnimation model)
+            ]
         , button
-            [ id "left", onClick <| Dark model.current ]
+            [ id "left", onClick <| Answering Dark model.current ]
             [ text <| I18n.dark model.language ]
         , button
-            [ id "right", onClick <| Light model.current ]
+            [ id "right", onClick <| Answering Light model.current ]
             [ text <| I18n.light model.language ]
         , h3
             [ class
-                (if model.result == I18n.Fail then
+                (if result == I18n.Fail then
                     "red"
 
                  else
                     "green"
                 )
             ]
-            [ text <| I18n.resultToString model.result model.language ]
-        , p [] [ text <| responseMessage model ]
+            [ text <| I18n.resultToString result model.language ]
+        , p [] [ text <| responseMessage model.language previous ]
         ]
 
 
 viewScore : Model -> Html Msg
 viewScore model =
-    div []
+    let
+        score =
+            model.results
+                |> List.map Tuple.second
+                |> List.filter ((==) I18n.Success)
+                |> List.length
+    in
+    div [ class "wrapper" ]
         [ h2 [] [ text <| I18n.score model.language ]
         , h1 [ id "score" ]
             [ text <|
-                String.fromInt model.score
+                String.fromInt score
                     ++ "/"
-                    ++ String.fromInt model.attempt
+                    ++ String.fromInt (List.length model.results)
                     ++ " - "
-                    ++ String.fromInt (model.score * 100 // model.attempt)
+                    ++ String.fromInt (score * 100 // List.length model.results)
                     ++ "%"
             ]
         , button [ onClick Start ] [ text <| I18n.restart model.language ]
