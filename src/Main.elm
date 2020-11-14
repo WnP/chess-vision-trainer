@@ -217,13 +217,6 @@ update msg model =
                 ( model, Cmd.none )
 
 
-updateModel : Model -> Bool -> Model
-updateModel model success =
-    { model
-        | results = List.append model.results [ ( model.current, I18n.Success ) ]
-    }
-
-
 
 -- SUBSCRIPTIONS
 
