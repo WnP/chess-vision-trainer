@@ -39,6 +39,7 @@ init language =
 type Game
     = ColorVision
     | PieceMove
+    | CommonSquare
 
 
 type Msg
@@ -56,6 +57,9 @@ update msg model =
             ( model, Cmd.none )
 
         Play PieceMove ->
+            ( model, Cmd.none )
+
+        Play CommonSquare ->
             ( model, Cmd.none )
 
 
@@ -84,5 +88,8 @@ view model =
             , button
                 [ onClick <| Play PieceMove ]
                 [ text <| I18n.pieceMoves model.language ]
+            , button
+                [ onClick <| Play CommonSquare ]
+                [ text <| I18n.commonSquares model.language ]
             ]
         ]

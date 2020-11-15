@@ -1,4 +1,4 @@
-module PieceMove exposing (Model, Msg(..), init, subscriptions, update, view)
+module CommonSquare exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Array
 import Browser.Events
@@ -20,7 +20,7 @@ import Time
 
 
 type alias Results =
-    List ( C.Position, I18n.Result )
+    List ( ( C.Position, C.Position ), I18n.Result )
 
 
 type alias Model =
@@ -28,7 +28,7 @@ type alias Model =
     , time : Int
     , started : Bool
     , hasPlayed : Bool
-    , current : C.Position
+    , current : ( C.Position, C.Position )
     , possbilities : ( List C.Piece, List C.Square )
     , answers : List String
     , previousAnswers : List String
@@ -49,7 +49,7 @@ initModel =
     , time = 0
     , started = False
     , hasPlayed = False
-    , current = C.emptyPosition
+    , current = ( C.emptyPosition, C.emptyPosition )
     , possbilities = initPossibilities
     , answers = []
     , previousAnswers = []
@@ -68,12 +68,18 @@ init language =
 -- UPDATE
 
 
+type Direction
+    = Left
+    | Right
+
+
 type Msg
     = NoOp
     | BackHome
-    | Roll
-    | NewPositionIndexes ( Int, Int )
+    | Roll Direction
+    | NewPositionIndexes Direction ( Int, Int )
     | Answering String
+    | AnsweringNone
     | Start
     | Tick Time.Posix
     | Keypress String
@@ -89,15 +95,15 @@ update msg model =
         BackHome ->
             ( model, Cmd.none )
 
-        Roll ->
+        Roll direction ->
             ( model
             , Random.pair
                 (Random.int 0 (List.length (Tuple.first model.possbilities) - 1))
                 (Random.int 0 (List.length (Tuple.second model.possbilities) - 1))
-                |> Random.generate NewPositionIndexes
+                |> Random.generate (NewPositionIndexes direction)
             )
 
-        NewPositionIndexes ( x, y ) ->
+        NewPositionIndexes direction ( x, y ) ->
             let
                 currentPiece =
                     Array.fromList (Tuple.first model.possbilities)
@@ -109,31 +115,38 @@ update msg model =
                         |> Array.get y
                         |> Maybe.withDefault C.emptySquare
 
-                pp =
-                    C.removeIndexFromList (Tuple.first model.possbilities) x
-
                 ps =
                     C.removeIndexFromList (Tuple.second model.possbilities) y
 
                 possbilities =
-                    ( if List.isEmpty pp then
-                        C.allPieces
-
-                      else
-                        pp
+                    ( C.allPieces
                     , if List.isEmpty ps then
                         C.allSquares
 
                       else
                         ps
                     )
+
+                current =
+                    case direction of
+                        Left ->
+                            ( ( currentPiece, currentSquare ), C.emptyPosition )
+
+                        Right ->
+                            ( Tuple.first model.current, ( currentPiece, currentSquare ) )
+
+                newModel =
+                    { model
+                        | possbilities = possbilities
+                        , current = current
+                    }
             in
-            ( { model
-                | possbilities = possbilities
-                , current = ( currentPiece, currentSquare )
-              }
-            , Cmd.none
-            )
+            case direction of
+                Left ->
+                    update (Roll Right) newModel
+
+                Right ->
+                    ( newModel, Cmd.none )
 
         Answering char ->
             if not <| String.contains char C.colAndRowChars then
@@ -167,13 +180,16 @@ update msg model =
                         else
                             List.append model.answers [ buffer ]
                 in
-                check { model | buffer = "", answers = answers }
+                check { model | buffer = "", answers = answers } False
 
             else
                 ( model, Cmd.none )
 
+        AnsweringNone ->
+            check { model | buffer = "" } True
+
         Start ->
-            update Roll
+            update (Roll Left)
                 { initModel
                     | time = 3100
                     , started = True
@@ -236,47 +252,63 @@ getSquares ( piece, square ) =
             C.bishopMoves square
 
 
-check : Model -> ( Model, Cmd Msg )
-check model =
+getSolution : ( C.Position, C.Position ) -> List C.Square
+getSolution ( a, b ) =
+    getSquares a
+        |> List.filter (C.flip List.member <| getSquares b)
+
+
+check : Model -> Bool -> ( Model, Cmd Msg )
+check model isNone =
     let
         answers =
             List.map C.stringToSquare model.answers
 
         solution =
-            getSquares model.current
+            getSolution model.current
 
         status =
             if List.all (C.flip List.member solution) answers then
                 if List.length answers == List.length solution then
                     Done
 
+                else if isNone then
+                    Fail
+
                 else
                     InProgress
 
             else
                 Fail
+
+        previousAnswers =
+            if isNone then
+                [ "" ]
+
+            else
+                model.answers
     in
     case status of
         Done ->
-            update Roll
+            update (Roll Left)
                 { model
                     | results =
                         List.append
                             model.results
                             [ ( model.current, I18n.Success ) ]
                     , answers = []
-                    , previousAnswers = model.answers
+                    , previousAnswers = previousAnswers
                 }
 
         Fail ->
-            update Roll
+            update (Roll Left)
                 { model
                     | results =
                         List.append
                             model.results
                             [ ( model.current, I18n.Fail ) ]
                     , answers = []
-                    , previousAnswers = model.answers
+                    , previousAnswers = previousAnswers
                 }
 
         InProgress ->
@@ -324,19 +356,26 @@ view model =
 viewInit : Model -> Html Msg
 viewInit model =
     div [ class "wrapper" ]
-        [ h1 [] [ text <| I18n.pieceMoves model.language ]
+        [ h1 [] [ text <| I18n.commonSquares model.language ]
         , p [ class "padded" ]
-            [ text <| I18n.pieceMoveDescription model.language ]
+            [ text <| I18n.commonSquaresDescription model.language ]
         , Components.showTimer model.language ToggleTimer model.useTimer
         , button [ onClick Start ] [ text <| I18n.start model.language ]
         ]
+
+
+currentToString : I18n.Language -> ( C.Position, C.Position ) -> String
+currentToString lang ( left, right ) =
+    I18n.positionToString lang left
+        ++ " - "
+        ++ I18n.positionToString lang right
 
 
 getAnimation : I18n.Language -> Results -> List (Html Msg)
 getAnimation lang results =
     results
         |> List.map
-            (\( position, result ) ->
+            (\( current, result ) ->
                 div [ class "result-wrapper" ]
                     [ h1
                         [ class <|
@@ -347,7 +386,9 @@ getAnimation lang results =
                                 _ ->
                                     "fail"
                         ]
-                        [ text <| I18n.positionToString lang position ]
+                        [ currentToString lang current
+                            |> text
+                        ]
                     ]
             )
 
@@ -359,7 +400,10 @@ viewGame model =
             model.results
                 |> List.reverse
                 |> List.head
-                |> Maybe.withDefault ( C.emptyPosition, I18n.NoResult )
+                |> Maybe.withDefault
+                    ( ( C.emptyPosition, C.emptyPosition )
+                    , I18n.NoResult
+                    )
     in
     div [ class "wrapper" ]
         [ div []
@@ -370,10 +414,11 @@ viewGame model =
                 []
             )
         , div [ class "square" ]
-            [ h1 [] [ text <| I18n.positionToString model.language model.current ]
+            [ h1 [] [ text <| currentToString model.language model.current ]
             , div [] (getAnimation model.language model.results)
             ]
         , Components.userInput Answering
+        , button [ onClick AnsweringNone ] [ text <| I18n.none model.language ]
         , p []
             [ model.answers
                 |> C.flip List.append
@@ -402,7 +447,7 @@ viewGame model =
                 [ text "\u{00A0}" ]
 
              else
-                getSquares previous
+                getSolution previous
                     |> formatSolution model
             )
         ]
@@ -413,6 +458,7 @@ formatSolution model solution =
     let
         answers =
             model.previousAnswers
+                |> List.filter ((/=) "")
                 |> List.map C.stringToSquare
     in
     ((solution

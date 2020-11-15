@@ -114,6 +114,16 @@ pieceMoves lang =
             "Mouvements des Pièces"
 
 
+commonSquares : Language -> String
+commonSquares lang =
+    case lang of
+        En ->
+            "Common Squares"
+
+        Fr ->
+            "Cases Communes"
+
+
 positionToString : Language -> Common.Position -> String
 positionToString lang position =
     Tuple.second position
@@ -128,7 +138,7 @@ description lang =
             "Choose one of the available games below:"
 
         Fr ->
-            "Choisissez un des jeux disponible ci-dessous\u{00A0}:"
+            "Choisissez un des jeux disponibles ci-dessous\u{00A0}:"
 
 
 goBackHome : Language -> String
@@ -165,6 +175,17 @@ pieceMoveDescription lang =
         Fr ->
             "Une fois la partie commencée vous devez entrer l'ensemble des cases "
                 ++ "sur lesquelles la pièce proposée peut se déplacer."
+
+
+commonSquaresDescription : Language -> String
+commonSquaresDescription lang =
+    case lang of
+        En ->
+            "Once started you should input all squares where both pieces can move."
+
+        Fr ->
+            "Une fois la partie commencée vous devez entrer l'ensemble des positions "
+                ++ "sur lesquelles les deux pièces peuvent se déplacer."
 
 
 start : Language -> String
@@ -245,3 +266,13 @@ useTimer lang =
 
         Fr ->
             "Utiliser le chronomètre\u{00A0}?"
+
+
+none : Language -> String
+none lang =
+    case lang of
+        En ->
+            "none"
+
+        Fr ->
+            "aucun"

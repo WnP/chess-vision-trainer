@@ -2,6 +2,7 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
 import Browser
 import ColorVision
+import CommonSquare
 import Home
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -32,6 +33,7 @@ type Model
     = Home Home.Model
     | ColorVision ColorVision.Model
     | PieceMove PieceMove.Model
+    | CommonSquare CommonSquare.Model
 
 
 init : String -> ( Model, Cmd Msg )
@@ -49,6 +51,7 @@ type Msg
     = HomeMsg Home.Msg
     | ColorVisionMsg ColorVision.Msg
     | PieceMoveMsg PieceMove.Msg
+    | CommonSquareMsg CommonSquare.Msg
 
 
 backHome : Model -> I18n.Language -> ( Model, Cmd Msg )
@@ -71,6 +74,11 @@ update msg model =
                 |> PieceMove.update PieceMove.NoOp
                 |> updateWith PieceMove PieceMoveMsg model
 
+        ( HomeMsg (Home.Play Home.CommonSquare), Home homeModel ) ->
+            CommonSquare.init homeModel.language
+                |> CommonSquare.update CommonSquare.NoOp
+                |> updateWith CommonSquare CommonSquareMsg model
+
         ( ColorVisionMsg ColorVision.BackHome, ColorVision colorVisionModel ) ->
             backHome model colorVisionModel.language
 
@@ -84,6 +92,13 @@ update msg model =
         ( PieceMoveMsg pieceMoveMsg, PieceMove pieceMoveModel ) ->
             PieceMove.update pieceMoveMsg pieceMoveModel
                 |> updateWith PieceMove PieceMoveMsg model
+
+        ( CommonSquareMsg CommonSquare.BackHome, CommonSquare commonSquareModel ) ->
+            backHome model commonSquareModel.language
+
+        ( CommonSquareMsg commonSquareMsg, CommonSquare commonSquareModel ) ->
+            CommonSquare.update commonSquareMsg commonSquareModel
+                |> updateWith CommonSquare CommonSquareMsg model
 
         _ ->
             ( model, Cmd.none )
@@ -114,6 +129,9 @@ subscriptions model =
         PieceMove pieceMoveModel ->
             Sub.map PieceMoveMsg (PieceMove.subscriptions pieceMoveModel)
 
+        CommonSquare commonSquareModel ->
+            Sub.map CommonSquareMsg (CommonSquare.subscriptions commonSquareModel)
+
         Home homeModel ->
             Sub.map HomeMsg (Home.subscriptions homeModel)
 
@@ -130,6 +148,9 @@ view model =
 
         PieceMove pieceMoveModel ->
             Html.map PieceMoveMsg <| PieceMove.view pieceMoveModel
+
+        CommonSquare commonSquareModel ->
+            Html.map CommonSquareMsg <| CommonSquare.view commonSquareModel
 
         Home homeModel ->
             Html.map HomeMsg <| Home.view homeModel
