@@ -66,6 +66,7 @@ button {
     box-shadow: 3px 3px 12px black;
     color: white;
     transition: all 0.2s;
+    outline: none;
 }
 
 button:active {
