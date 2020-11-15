@@ -2,6 +2,7 @@ module ColorVision exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Array
 import Common as C
+import Components
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -269,41 +270,30 @@ viewGame model =
                 |> Maybe.withDefault ( C.emptySquare, I18n.NoResult )
     in
     div [ class "wrapper" ]
-        [ h2 [] [ text <| String.fromInt <| model.time // 100 ]
-        , div
-            [ id "progress-bar"
-            , class "wrapper"
-            , style "width" <|
-                ((model.time - 100)
-                    |> toFloat
-                    |> C.flip (/) 30
-                    |> String.fromFloat
-                )
-                    ++ "%"
-            ]
-            []
-        , div [ class "square" ]
-            [ h1 [] [ text <| C.squareToString model.current ]
-            , div [] (getAnimation model.results)
-            ]
-        , button
-            [ id "left", onClick <| Answering Dark ]
-            [ text <| I18n.dark model.language ]
-        , button
-            [ id "right", onClick <| Answering Light ]
-            [ text <| I18n.light model.language ]
-        , h3
-            [ class
-                (if result == I18n.Fail then
-                    "red"
+        (Components.progressBar model.time
+            ++ [ div [ class "square" ]
+                    [ h1 [] [ text <| C.squareToString model.current ]
+                    , div [] (getAnimation model.results)
+                    ]
+               , button
+                    [ id "left", onClick <| Answering Dark ]
+                    [ text <| I18n.dark model.language ]
+               , button
+                    [ id "right", onClick <| Answering Light ]
+                    [ text <| I18n.light model.language ]
+               , h3
+                    [ class
+                        (if result == I18n.Fail then
+                            "red"
 
-                 else
-                    "green"
-                )
-            ]
-            [ text <| I18n.result model.language result ]
-        , p [] [ text <| responseMessage model.language previous ]
-        ]
+                         else
+                            "green"
+                        )
+                    ]
+                    [ text <| I18n.result model.language result ]
+               , p [] [ text <| responseMessage model.language previous ]
+               ]
+        )
 
 
 viewScore : Model -> Html Msg
@@ -316,15 +306,6 @@ viewScore model =
                 |> List.length
     in
     div [ class "wrapper" ]
-        [ h2 [] [ text <| I18n.score model.language ]
-        , h1 [ id "score" ]
-            [ text <|
-                String.fromInt score
-                    ++ "/"
-                    ++ String.fromInt (List.length model.results)
-                    ++ " - "
-                    ++ String.fromInt (score * 100 // List.length model.results)
-                    ++ "%"
-            ]
+        [ Components.score model.language score <| List.length model.results
         , button [ onClick Start ] [ text <| I18n.restart model.language ]
         ]

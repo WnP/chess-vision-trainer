@@ -3,6 +3,7 @@ module PieceMove exposing (Model, Msg(..), init, subscriptions, update, view)
 import Array
 import Browser.Events
 import Common as C
+import Components
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -356,20 +357,7 @@ viewInit model =
         [ h1 [] [ text <| I18n.pieceMoves model.language ]
         , p [ class "padded" ]
             [ text <| I18n.pieceMoveDescription model.language ]
-        , div []
-            [ input
-                [ type_ "checkbox"
-                , name "use-timer"
-                , checked model.useTimer
-                , onClick ToggleTimer
-                ]
-                []
-            , label
-                [ for "user-timer"
-                , onClick ToggleTimer
-                ]
-                [ text <| I18n.useTimer model.language ]
-            ]
+        , Components.showTimer model.language ToggleTimer model.useTimer
         , button [ onClick Start ] [ text <| I18n.start model.language ]
         ]
 
@@ -406,20 +394,7 @@ viewGame model =
     div [ class "wrapper" ]
         [ div []
             (if model.useTimer then
-                [ h2 [] [ text <| String.fromInt <| model.time // 100 ]
-                , div
-                    [ id "progress-bar"
-                    , class "wrapper"
-                    , style "width" <|
-                        ((model.time - 100)
-                            |> toFloat
-                            |> C.flip (/) 30
-                            |> String.fromFloat
-                        )
-                            ++ "%"
-                    ]
-                    []
-                ]
+                Components.progressBar model.time
 
              else
                 []
@@ -428,9 +403,7 @@ viewGame model =
             [ h1 [] [ text <| I18n.positionToString model.language model.current ]
             , div [] (getAnimation model.language model.results)
             ]
-        , (\x -> button [ onClick <| Answering x ] [ text x ])
-            |> C.flip List.map [ "a", "b", "c", "d", "e", "f", "g", "h", "1", "2", "3", "4", "5", "6", "7", "8" ]
-            |> div [ class "user-input" ]
+        , Components.userInput Answering
         , p []
             [ model.answers
                 |> C.flip List.append
@@ -499,29 +472,7 @@ viewScore model =
                 |> List.length
     in
     div [ class "wrapper" ]
-        [ h2 [] [ text <| I18n.score model.language ]
-        , h1 [ id "score" ]
-            [ text <|
-                String.fromInt score
-                    ++ "/"
-                    ++ String.fromInt (List.length model.results)
-                    ++ " - "
-                    ++ String.fromInt (score * 100 // List.length model.results)
-                    ++ "%"
-            ]
-        , div []
-            [ input
-                [ type_ "checkbox"
-                , name "use-timer"
-                , checked model.useTimer
-                , onClick ToggleTimer
-                ]
-                []
-            , label
-                [ for "user-timer"
-                , onClick ToggleTimer
-                ]
-                [ text <| I18n.useTimer model.language ]
-            ]
+        [ Components.score model.language score <| List.length model.results
+        , Components.showTimer model.language ToggleTimer model.useTimer
         , button [ onClick Start ] [ text <| I18n.restart model.language ]
         ]
