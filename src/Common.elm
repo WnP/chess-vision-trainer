@@ -14,6 +14,21 @@ removeIndexFromList l i =
         |> List.append (List.take i l)
 
 
+rowChars : String
+rowChars =
+    "12345678"
+
+
+colChars : String
+colChars =
+    "abcdefgh"
+
+
+colAndRowChars : String
+colAndRowChars =
+    colChars ++ rowChars
+
+
 type alias Square =
     ( Int, Int )
 
@@ -30,6 +45,21 @@ squareToString ( x, y ) =
 
     else
         String.fromChar (Char.fromCode <| x + 96) ++ String.fromInt y
+
+
+stringToSquare : String -> Square
+stringToSquare s =
+    ( String.left 1 s
+        |> flip String.indexes colChars
+        |> List.head
+        |> Maybe.withDefault 0
+        |> (+) 1
+    , String.right 1 s
+        |> flip String.indexes rowChars
+        |> List.head
+        |> Maybe.withDefault 0
+        |> (+) 1
+    )
 
 
 allSquares : List Square

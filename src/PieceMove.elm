@@ -64,36 +64,6 @@ init language =
     { initModel | language = language }
 
 
-rowChars : String
-rowChars =
-    "12345678"
-
-
-colChars : String
-colChars =
-    "abcdefgh"
-
-
-colAndRowChars : String
-colAndRowChars =
-    colChars ++ rowChars
-
-
-stringToSquare : String -> C.Square
-stringToSquare s =
-    ( String.left 1 s
-        |> C.flip String.indexes colChars
-        |> List.head
-        |> Maybe.withDefault 0
-        |> (+) 1
-    , String.right 1 s
-        |> C.flip String.indexes rowChars
-        |> List.head
-        |> Maybe.withDefault 0
-        |> (+) 1
-    )
-
-
 
 -- UPDATE
 
@@ -166,13 +136,13 @@ update msg model =
             )
 
         Answering char ->
-            if not <| String.contains char colAndRowChars then
+            if not <| String.contains char C.colAndRowChars then
                 ( model, Cmd.none )
 
             else if
                 String.length model.buffer
                     == 0
-                    && String.contains char colChars
+                    && String.contains char C.colChars
             then
                 let
                     buffer =
@@ -183,7 +153,7 @@ update msg model =
             else if
                 String.length model.buffer
                     == 1
-                    && String.contains char rowChars
+                    && String.contains char C.rowChars
             then
                 let
                     buffer =
@@ -270,7 +240,7 @@ check : Model -> ( Model, Cmd Msg )
 check model =
     let
         answers =
-            List.map stringToSquare model.answers
+            List.map C.stringToSquare model.answers
 
         solution =
             getSolution model.current
@@ -439,7 +409,7 @@ formatSolution model solution =
     let
         answers =
             model.previousAnswers
-                |> List.map stringToSquare
+                |> List.map C.stringToSquare
     in
     ((solution
         |> List.map
