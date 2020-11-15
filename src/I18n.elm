@@ -1,5 +1,7 @@
 module I18n exposing (..)
 
+import Common
+
 
 type Language
     = En
@@ -25,8 +27,8 @@ type Result
     | NoResult
 
 
-resultToString : Result -> Language -> String
-resultToString r lang =
+result : Language -> Result -> String
+result lang r =
     case r of
         Success ->
             case lang of
@@ -46,6 +48,77 @@ resultToString r lang =
 
         NoResult ->
             "\u{00A0}"
+
+
+piece : Language -> Common.Piece -> String
+piece lang p =
+    case p of
+        Common.NoPiece ->
+            case lang of
+                En ->
+                    "\u{00A0}"
+
+                Fr ->
+                    "\u{00A0}"
+
+        Common.Queen ->
+            case lang of
+                En ->
+                    "Q"
+
+                Fr ->
+                    "D"
+
+        Common.Knight ->
+            case lang of
+                En ->
+                    "K"
+
+                Fr ->
+                    "C"
+
+        Common.Rook ->
+            case lang of
+                En ->
+                    "R"
+
+                Fr ->
+                    "T"
+
+        Common.Bishop ->
+            case lang of
+                En ->
+                    "B"
+
+                Fr ->
+                    "F"
+
+
+colorVision : Language -> String
+colorVision lang =
+    case lang of
+        En ->
+            "Color Vision"
+
+        Fr ->
+            "Vision des Couleurs"
+
+
+pieceMoves : Language -> String
+pieceMoves lang =
+    case lang of
+        En ->
+            "Piece Moves"
+
+        Fr ->
+            "Mouvements des Pièces"
+
+
+positionToString : Language -> Common.Position -> String
+positionToString lang position =
+    Tuple.second position
+        |> Common.squareToString
+        |> (++) (piece lang <| Tuple.first position)
 
 
 description : Language -> String
@@ -77,9 +150,21 @@ colorVisionDescription lang =
                 ++ "your chess vision."
 
         Fr ->
-            "Une fois commencé vous devez deviner si la case proposée est "
+            "Une fois la partie commencée vous devez deviner si la case proposée est "
                 ++ "foncée ou claire. Cette excercice devrait améliorer votre "
                 ++ "vision aux échecs."
+
+
+pieceMoveDescription : Language -> String
+pieceMoveDescription lang =
+    case lang of
+        En ->
+            "Once started you should input all square where the displayed piece can "
+                ++ "move."
+
+        Fr ->
+            "Une fois la partie commencée vous devez entrer l'ensemble des cases "
+                ++ "sur lesquelles la pièce proposée peut se déplacer."
 
 
 start : Language -> String
@@ -150,3 +235,13 @@ isaLightSquare lang =
 
         Fr ->
             " est une case Claire."
+
+
+useTimer : Language -> String
+useTimer lang =
+    case lang of
+        En ->
+            "Use timer?"
+
+        Fr ->
+            "Utiliser le chronomètre\u{00A0}?"

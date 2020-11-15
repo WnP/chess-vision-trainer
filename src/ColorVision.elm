@@ -39,8 +39,7 @@ type alias Model =
 
 initPossibilities : List C.Square
 initPossibilities =
-    List.range 1 8
-        |> List.concatMap (Tuple.pair >> C.flip List.map (List.range 1 8))
+    C.allSquares
 
 
 initModel : Model
@@ -58,15 +57,6 @@ initModel =
 init : I18n.Language -> Model
 init language =
     { initModel | language = language }
-
-
-squareToString : C.Square -> String
-squareToString ( x, y ) =
-    if x == 0 then
-        ""
-
-    else
-        String.fromChar (Char.fromCode <| x + 96) ++ String.fromInt y
 
 
 isEven : Int -> Bool
@@ -98,7 +88,7 @@ type Msg
     | BackHome
     | Roll
     | NewSquareIndex Int
-    | Answering Answer C.Square
+    | Answering Answer
     | Start
     | Tick Time.Posix
 
@@ -126,8 +116,7 @@ update msg model =
                         |> Maybe.withDefault C.emptySquare
 
                 p =
-                    List.drop (i + 1) model.possbilities
-                        |> List.append (List.take i model.possbilities)
+                    C.removeIndexFromList model.possbilities i
 
                 possbilities =
                     if List.isEmpty p then
@@ -143,15 +132,15 @@ update msg model =
             , Cmd.none
             )
 
-        Answering answer square ->
+        Answering answer ->
             let
                 success =
                     case answer of
                         Dark ->
-                            isDark square
+                            isDark model.current
 
                         Light ->
-                            isLight square
+                            isLight model.current
             in
             update Roll
                 { model
@@ -228,7 +217,7 @@ view model =
 viewInit : Model -> Html Msg
 viewInit model =
     div [ class "wrapper" ]
-        [ h1 [] [ text "Chess Color Vision" ]
+        [ h1 [] [ text <| I18n.colorVision model.language ]
         , p [ class "padded" ]
             [ text <| I18n.colorVisionDescription model.language ]
         , button [ onClick Start ] [ text <| I18n.start model.language ]
@@ -241,7 +230,7 @@ responseMessage lang square =
         "\u{00A0}"
 
     else
-        squareToString square
+        C.squareToString square
             ++ (if isDark square then
                     I18n.isaDarkSquare lang
 
@@ -265,7 +254,7 @@ getAnimation results =
                                 _ ->
                                     "fail"
                         ]
-                        [ text <| squareToString square ]
+                        [ text <| C.squareToString square ]
                     ]
             )
 
@@ -294,14 +283,14 @@ viewGame model =
             ]
             []
         , div [ class "square" ]
-            [ h1 [] [ text <| squareToString model.current ]
+            [ h1 [] [ text <| C.squareToString model.current ]
             , div [] (getAnimation model.results)
             ]
         , button
-            [ id "left", onClick <| Answering Dark model.current ]
+            [ id "left", onClick <| Answering Dark ]
             [ text <| I18n.dark model.language ]
         , button
-            [ id "right", onClick <| Answering Light model.current ]
+            [ id "right", onClick <| Answering Light ]
             [ text <| I18n.light model.language ]
         , h3
             [ class
@@ -312,7 +301,7 @@ viewGame model =
                     "green"
                 )
             ]
-            [ text <| I18n.resultToString result model.language ]
+            [ text <| I18n.result model.language result ]
         , p [] [ text <| responseMessage model.language previous ]
         ]
 

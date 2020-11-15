@@ -38,6 +38,7 @@ init language =
 
 type Game
     = ColorVision
+    | PieceMove
 
 
 type Msg
@@ -52,6 +53,9 @@ update msg model =
             ( model, Cmd.none )
 
         Play ColorVision ->
+            ( model, Cmd.none )
+
+        Play PieceMove ->
             ( model, Cmd.none )
 
 
@@ -73,7 +77,12 @@ view model =
     div [ class "wrapper" ]
         [ h1 [] [ text "Chess Vision Trainer" ]
         , p [ class "padded" ] [ text <| I18n.description model.language ]
-        , button
-            [ onClick <| Play ColorVision ]
-            [ text "Chess Color Vision" ]
+        , div [ id "menu" ]
+            [ button
+                [ onClick <| Play ColorVision ]
+                [ text <| I18n.colorVision model.language ]
+            , button
+                [ onClick <| Play PieceMove ]
+                [ text <| I18n.pieceMoves model.language ]
+            ]
         ]

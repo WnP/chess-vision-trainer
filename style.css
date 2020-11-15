@@ -36,6 +36,10 @@ a {
     color: teal;
 }
 
+label {
+    padding-left: 0.5em;
+}
+
 .home-btn {
     position: fixed;
     width: 100vw;
@@ -44,6 +48,12 @@ a {
     text-align: center;
     padding: 1em;
     cursor: pointer;
+}
+
+#menu button {
+    width: 100%;
+    margin: 0;
+    margin-bottom: 1em;
 }
 
 button {
@@ -89,6 +99,22 @@ button:active {
 
 .padded {
     padding-bottom: 4em;
+}
+
+.user-input {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    max-width: 19em;
+    margin: auto;
+}
+
+.user-input button {
+    margin: 0;
+    width: 2em;
+    height: 2em;
+    margin-bottom: 0.5em;
+    padding: 0.2em 0.5em;
 }
 
 #score {

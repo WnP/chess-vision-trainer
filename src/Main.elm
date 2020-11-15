@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import I18n
+import PieceMove
 import Time
 
 
@@ -30,6 +31,7 @@ main =
 type Model
     = Home Home.Model
     | ColorVision ColorVision.Model
+    | PieceMove PieceMove.Model
 
 
 init : String -> ( Model, Cmd Msg )
@@ -46,6 +48,14 @@ init language =
 type Msg
     = HomeMsg Home.Msg
     | ColorVisionMsg ColorVision.Msg
+    | PieceMoveMsg PieceMove.Msg
+
+
+backHome : Model -> I18n.Language -> ( Model, Cmd Msg )
+backHome model lang =
+    Home.init lang
+        |> Home.update Home.NoOp
+        |> updateWith Home HomeMsg model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -56,14 +66,24 @@ update msg model =
                 |> ColorVision.update ColorVision.NoOp
                 |> updateWith ColorVision ColorVisionMsg model
 
+        ( HomeMsg (Home.Play Home.PieceMove), Home homeModel ) ->
+            PieceMove.init homeModel.language
+                |> PieceMove.update PieceMove.NoOp
+                |> updateWith PieceMove PieceMoveMsg model
+
         ( ColorVisionMsg ColorVision.BackHome, ColorVision colorVisionModel ) ->
-            Home.init colorVisionModel.language
-                |> Home.update Home.NoOp
-                |> updateWith Home HomeMsg model
+            backHome model colorVisionModel.language
 
         ( ColorVisionMsg colorVisionMsg, ColorVision colorVisionModel ) ->
             ColorVision.update colorVisionMsg colorVisionModel
                 |> updateWith ColorVision ColorVisionMsg model
+
+        ( PieceMoveMsg PieceMove.BackHome, PieceMove pieceMoveModel ) ->
+            backHome model pieceMoveModel.language
+
+        ( PieceMoveMsg pieceMoveMsg, PieceMove pieceMoveModel ) ->
+            PieceMove.update pieceMoveMsg pieceMoveModel
+                |> updateWith PieceMove PieceMoveMsg model
 
         _ ->
             ( model, Cmd.none )
@@ -91,6 +111,9 @@ subscriptions model =
         ColorVision colorVisionModel ->
             Sub.map ColorVisionMsg (ColorVision.subscriptions colorVisionModel)
 
+        PieceMove pieceMoveModel ->
+            Sub.map PieceMoveMsg (PieceMove.subscriptions pieceMoveModel)
+
         Home homeModel ->
             Sub.map HomeMsg (Home.subscriptions homeModel)
 
@@ -104,6 +127,9 @@ view model =
     case model of
         ColorVision colorVisionModel ->
             Html.map ColorVisionMsg <| ColorVision.view colorVisionModel
+
+        PieceMove pieceMoveModel ->
+            Html.map PieceMoveMsg <| PieceMove.view pieceMoveModel
 
         Home homeModel ->
             Html.map HomeMsg <| Home.view homeModel
