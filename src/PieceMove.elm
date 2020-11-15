@@ -398,8 +398,12 @@ viewGame model =
             ]
             [ text <| I18n.result model.language result ]
         , p []
-            (getSolution previous
-                |> formatSolution model
+            (if List.isEmpty model.previousAnswers then
+                [ text "\u{00A0}" ]
+
+             else
+                getSolution previous
+                    |> formatSolution model
             )
         ]
 
