@@ -128,7 +128,7 @@ description lang =
             "Choose one of the available games below:"
 
         Fr ->
-            "Choisissez un des jeux disponiblent ci-dessous\u{00A0}:"
+            "Choisissez un des jeux disponible ci-dessous\u{00A0}:"
 
 
 goBackHome : Language -> String
