@@ -1,7 +1,8 @@
 module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 
 import Browser
-import ColorVision as ColorVision
+import ColorVision
+import Home
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -27,12 +28,13 @@ main =
 
 
 type Model
-    = ColorVision ColorVision.Model
+    = Home Home.Model
+    | ColorVision ColorVision.Model
 
 
 init : String -> ( Model, Cmd Msg )
 init language =
-    ( ColorVision (ColorVision.init language)
+    ( Home (Home.init <| I18n.parseLang language)
     , Cmd.none
     )
 
@@ -42,13 +44,23 @@ init language =
 
 
 type Msg
-    = Tick Time.Posix
+    = HomeMsg Home.Msg
     | ColorVisionMsg ColorVision.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
+        ( HomeMsg (Home.Play Home.ColorVision), Home homeModel ) ->
+            ColorVision.init homeModel.language
+                |> ColorVision.update ColorVision.NoOp
+                |> updateWith ColorVision ColorVisionMsg model
+
+        ( ColorVisionMsg ColorVision.BackHome, ColorVision colorVisionModel ) ->
+            Home.init colorVisionModel.language
+                |> Home.update Home.NoOp
+                |> updateWith Home HomeMsg model
+
         ( ColorVisionMsg colorVisionMsg, ColorVision colorVisionModel ) ->
             ColorVision.update colorVisionMsg colorVisionModel
                 |> updateWith ColorVision ColorVisionMsg model
@@ -79,6 +91,9 @@ subscriptions model =
         ColorVision colorVisionModel ->
             Sub.map ColorVisionMsg (ColorVision.subscriptions colorVisionModel)
 
+        Home homeModel ->
+            Sub.map HomeMsg (Home.subscriptions homeModel)
+
 
 
 -- VIEW
@@ -89,3 +104,6 @@ view model =
     case model of
         ColorVision colorVisionModel ->
             Html.map ColorVisionMsg <| ColorVision.view colorVisionModel
+
+        Home homeModel ->
+            Html.map HomeMsg <| Home.view homeModel

@@ -52,6 +52,26 @@ description : Language -> String
 description lang =
     case lang of
         En ->
+            "Choose one of the available games below:"
+
+        Fr ->
+            "Choisissez un des jeux disponiblent ci-dessous\u{00A0}:"
+
+
+goBackHome : Language -> String
+goBackHome lang =
+    case lang of
+        En ->
+            "Go back home"
+
+        Fr ->
+            "Retour à la page d'accueil"
+
+
+colorVisionDescription : Language -> String
+colorVisionDescription lang =
+    case lang of
+        En ->
             "Once started you should guess if the displayed square "
                 ++ "is a Light or a Dark one. This excercice may improve "
                 ++ "your chess vision."

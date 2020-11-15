@@ -32,6 +32,20 @@ p {
     font-size: 1em;
 }
 
+a {
+    color: teal;
+}
+
+.home-btn {
+    position: fixed;
+    width: 100vw;
+    top: 0;
+    left: -1em;
+    text-align: center;
+    padding: 1em;
+    cursor: pointer;
+}
+
 button {
     font-size: 2em;
     padding: 0.5em 1em;
@@ -101,6 +115,7 @@ button:active {
 .square {
     position: relative;
 }
+
 .result-wrapper {
     position: absolute;
     top: 0;
@@ -133,6 +148,7 @@ button:active {
         color: green;
     }
 }
+
 @keyframes success-size {
     from {
         font-size: 4em;
@@ -143,6 +159,7 @@ button:active {
         opacity: 0;
     }
 }
+
 @keyframes success-wrapper {
     from {
         top: 0;
@@ -171,6 +188,7 @@ button:active {
         color: red;
     }
 }
+
 @keyframes fail-size {
     from {
         font-size: 4em;

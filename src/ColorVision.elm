@@ -55,9 +55,9 @@ initModel =
     }
 
 
-init : String -> Model
+init : I18n.Language -> Model
 init language =
-    { initModel | language = I18n.parseLang language }
+    { initModel | language = language }
 
 
 squareToString : C.Square -> String
@@ -94,7 +94,9 @@ isLight =
 
 
 type Msg
-    = Roll
+    = NoOp
+    | BackHome
+    | Roll
     | NewSquareIndex Int
     | Answering Answer C.Square
     | Start
@@ -104,6 +106,12 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
+        BackHome ->
+            ( model, Cmd.none )
+
         Roll ->
             ( model
             , Random.int 0 (List.length model.possbilities - 1)
@@ -202,21 +210,27 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    if model.started then
-        viewGame model
+    div []
+        [ a
+            [ onClick BackHome, class "home-btn" ]
+            [ text <| I18n.goBackHome model.language ]
+        , if model.started then
+            viewGame model
 
-    else if model.hasPlayed then
-        viewScore model
+          else if model.hasPlayed then
+            viewScore model
 
-    else
-        viewInit model
+          else
+            viewInit model
+        ]
 
 
 viewInit : Model -> Html Msg
 viewInit model =
     div [ class "wrapper" ]
-        [ h1 [] [ text "Chess Vision Trainer" ]
-        , p [ class "padded" ] [ text <| I18n.description model.language ]
+        [ h1 [] [ text "Chess Color Vision" ]
+        , p [ class "padded" ]
+            [ text <| I18n.colorVisionDescription model.language ]
         , button [ onClick Start ] [ text <| I18n.start model.language ]
         ]
 
