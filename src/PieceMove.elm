@@ -30,6 +30,7 @@ type alias Model =
     , current : C.Position
     , possbilities : ( List C.Piece, List C.Square )
     , answers : List String
+    , previousAnswers : List String
     , results : Results
     , buffer : String
     , useTimer : Bool
@@ -50,6 +51,7 @@ initModel =
     , current = C.emptyPosition
     , possbilities = initPossibilities
     , answers = []
+    , previousAnswers = []
     , results = []
     , buffer = ""
     , useTimer = True
@@ -292,6 +294,7 @@ check model =
                             model.results
                             [ ( model.current, I18n.Success ) ]
                     , answers = []
+                    , previousAnswers = model.answers
                 }
 
         Fail ->
@@ -302,6 +305,7 @@ check model =
                             model.results
                             [ ( model.current, I18n.Fail ) ]
                     , answers = []
+                    , previousAnswers = model.answers
                 }
 
         InProgress ->
@@ -451,13 +455,38 @@ viewGame model =
             ]
             [ text <| I18n.result model.language result ]
         , p []
-            [ getSolution previous
-                |> List.map C.squareToString
-                |> String.join ", "
-                |> (++) "\u{00A0}"
-                |> text
-            ]
+            (getSolution previous
+                |> formatSolution model
+            )
         ]
+
+
+formatSolution : Model -> List C.Square -> List (Html Msg)
+formatSolution model solution =
+    let
+        answers =
+            model.previousAnswers
+                |> List.map stringToSquare
+    in
+    ((solution
+        |> List.map
+            (\s ->
+                if List.member s answers then
+                    span [ class "green" ] [ text <| C.squareToString s ]
+
+                else
+                    span [] [ text <| C.squareToString s ]
+            )
+     )
+        ++ (answers
+                |> List.filter (not << C.flip List.member solution)
+                |> List.map
+                    (\s ->
+                        span [ class "red" ] [ text <| C.squareToString s ]
+                    )
+           )
+    )
+        |> List.intersperse (text ", ")
 
 
 viewScore : Model -> Html Msg
@@ -479,6 +508,20 @@ viewScore model =
                     ++ " - "
                     ++ String.fromInt (score * 100 // List.length model.results)
                     ++ "%"
+            ]
+        , div []
+            [ input
+                [ type_ "checkbox"
+                , name "use-timer"
+                , checked model.useTimer
+                , onClick ToggleTimer
+                ]
+                []
+            , label
+                [ for "user-timer"
+                , onClick ToggleTimer
+                ]
+                [ text <| I18n.useTimer model.language ]
             ]
         , button [ onClick Start ] [ text <| I18n.restart model.language ]
         ]
