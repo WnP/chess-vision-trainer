@@ -65,7 +65,8 @@ button {
     border-radius: 5px 5px;
     box-shadow: 3px 3px 12px black;
     color: white;
-    transition: all 0.2s;
+    transition-property: background-color, box-shadow;
+    transition-duration: 0.2s;
     outline: none;
 }
 
@@ -81,6 +82,10 @@ button:active {
 
 #right {
     margin-right: 0;
+}
+
+#none-btn {
+    margin: 0;
 }
 
 #progress-bar {

@@ -418,7 +418,9 @@ viewGame model =
             , div [] (getAnimation model.language model.results)
             ]
         , Components.userInput Answering
-        , button [ onClick AnsweringNone ] [ text <| I18n.none model.language ]
+        , button
+            [ id "none-btn", onClick AnsweringNone ]
+            [ text <| I18n.none model.language ]
         , p []
             [ model.answers
                 |> C.flip List.append
@@ -443,12 +445,16 @@ viewGame model =
             ]
             [ text <| I18n.result model.language result ]
         , p []
-            (if List.isEmpty model.previousAnswers then
+            (let
+                solution =
+                    getSolution previous
+                        |> formatSolution model
+             in
+             if List.isEmpty solution then
                 [ text "\u{00A0}" ]
 
              else
-                getSolution previous
-                    |> formatSolution model
+                solution
             )
         ]
 

@@ -272,7 +272,7 @@ none : Language -> String
 none lang =
     case lang of
         En ->
-            "none"
+            "None"
 
         Fr ->
-            "aucun"
+            "Aucune"
